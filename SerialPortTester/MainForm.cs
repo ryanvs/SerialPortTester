@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO.Ports;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SerialPortTester
@@ -15,6 +8,7 @@ namespace SerialPortTester
     public partial class MainForm : Form
     {
         private SerialPort _port;
+        private ConfigPortForm _configForm;
 
         public MainForm()
         {
@@ -48,7 +42,7 @@ namespace SerialPortTester
         {
             Trace.TraceInformation("DataReceived: {0}", e.EventType);
             string data = ((SerialPort)sender).ReadExisting();
-            ReceivedTextBox.Text += data;
+            AppendReceivedData(data);
         }
 
         private void _port_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
@@ -61,6 +55,18 @@ namespace SerialPortTester
             Trace.TraceInformation("PinChanged: {0}", e.EventType);
         }
 
+        private void AppendReceivedData(string data)
+        {
+            if (InvokeRequired)
+            {
+                Invoke((Action)(() => { AppendReceivedData(data); }));
+            }
+            else
+            {
+                ReceivedTextBox.Text += data;
+            }
+        }
+
         private void UpdateButtons()
         {
             bool isOpen = _port.IsOpen;
@@ -68,6 +74,7 @@ namespace SerialPortTester
             OpenButton.Enabled = !isOpen;
             CloseButton.Enabled = isOpen;
             SendButton.Enabled = isOpen;
+            SendTextBox.ReadOnly = !isOpen;
         }
 
         private void OpenButton_Click(object sender, EventArgs e)
@@ -88,6 +95,27 @@ namespace SerialPortTester
         {
             _port.Write(SendTextBox.Text);
             UpdateButtons();
+        }
+
+        private void ConfigButton_Click(object sender, EventArgs e)
+        {
+            if (_configForm == null || _configForm.IsDisposed)
+            {
+                _configForm = new ConfigPortForm();
+                _configForm.Owner = this;
+            }
+
+            var config = new SerialPortConfig();
+            config.GetPortConfiguration(_port);
+            var handle = _configForm.Handle; // Force the form to load
+            _configForm.SetSerialPortConfig(config);
+
+            var result = _configForm.ShowDialog(this);
+            if (result == DialogResult.OK)
+            {
+                config = _configForm.GetSerialPortConfig();
+                config.SetPortConfiguration(_port);
+            }
         }
     }
 }

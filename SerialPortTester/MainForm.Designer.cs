@@ -57,6 +57,7 @@
             this.SendTextBox.Location = new System.Drawing.Point(12, 118);
             this.SendTextBox.Multiline = true;
             this.SendTextBox.Name = "SendTextBox";
+            this.SendTextBox.ReadOnly = true;
             this.SendTextBox.Size = new System.Drawing.Size(575, 100);
             this.SendTextBox.TabIndex = 0;
             // 
@@ -68,6 +69,7 @@
             this.ConfigButton.TabIndex = 1;
             this.ConfigButton.Text = "Configure";
             this.ConfigButton.UseVisualStyleBackColor = true;
+            this.ConfigButton.Click += new System.EventHandler(this.ConfigButton_Click);
             // 
             // OpenButton
             // 
